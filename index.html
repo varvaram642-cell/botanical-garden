@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ботанический сад — Место, где дышит природа</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== БАЗА ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #4A5D4A;
+            color: #FDF8F0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        /* ===== ФИРМЕННЫЙ ПАТТЕРН (ФОН) ===== */
+        .pattern-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background-image: 
+                /* Темно-оливковые листья */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30 10 C15 10 10 25 10 35 C10 45 20 50 30 50 C40 50 50 45 50 35 C50 25 45 10 30 10Z' fill='%233D4F3D' opacity='0.3'/%3E%3C/svg%3E"),
+                /* Розовые цветы (сакура/магнолия) */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='18' fill='%23F5D6D4' opacity='0.25'/%3E%3Ccircle cx='40' cy='22' r='10' fill='%23F5D6D4' opacity='0.2'/%3E%3Ccircle cx='40' cy='58' r='10' fill='%23F5D6D4' opacity='0.2'/%3E%3Ccircle cx='22' cy='40' r='10' fill='%23F5D6D4' opacity='0.2'/%3E%3Ccircle cx='58' cy='40' r='10' fill='%23F5D6D4' opacity='0.2'/%3E%3C/svg%3E");
+            background-size: 120px 120px, 160px 160px;
+            background-position: 0 0, 40px 60px;
+            background-repeat: repeat;
+            will-change: transform;
+            transition: transform 0.1s;
+        }
+        
+        /* Параллакс-слой для листьев (двигается медленнее) */
+        .pattern-bg.leaves {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30 10 C15 10 10 25 10 35 C10 45 20 50 30 50 C40 50 50 45 50 35 C50 25 45 10 30 10Z' fill='%233D4F3D' opacity='0.35'/%3E%3C/svg%3E");
+            background-size: 140px 140px;
+            background-position: 20px 30px;
+            background-repeat: repeat;
+            transform: translateY(0);
+        }
+        
+        /* ===== ОБЩИЕ КЛАССЫ ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 700;
+            color: #FDF8F0;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+        
+        .section-subtitle {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+            font-weight: 300;
+            color: rgba(253, 248, 240, 0.7);
+            line-height: 1.8;
+            max-width: 600px;
+        }
+        
+        /* ===== ШАПКА ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(74, 93, 74, 0.6);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(253, 248, 240, 0.06);
+            transition: all 0.4s ease;
+        }
+        
+        .header.scrolled {
+            background: rgba(74, 93, 74, 0.85);
+            padding: 16px 40px;
+        }
+        
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #FDF8F0;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo span {
+            font-style: italic;
+            font-weight: 400;
+            color: #F5D6D4;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .nav a {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: rgba(253, 248, 240, 0.6);
+            transition: color 0.3s;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 4px;
+        }
+        
+        .nav a:hover {
+            color: #FDF8F0;
+            border-bottom-color: #F5D6D4;
+        }
+        
+        .nav .btn-ticket {
+            background: #F5D6D4;
+            color: #1A2A1A;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .nav .btn-ticket:hover {
+            background: #FDF8F0;
+            transform: scale(1.04);
+            box-shadow: 0 0 30px rgba(245, 214, 212, 0.2);
+        }
+        
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 40px 60px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        
+        .hero-content {
+            max-width: 800px;
+        }
+        
+        .hero-content .badge {
+            display: inline-block;
+            background: rgba(245, 214, 212, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 6px 24px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #F5D6D4;
+            margin-bottom: 24px;
+            border: 1px solid rgba(245, 214, 212, 0.15);
+        }
+        
+        .hero-content h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 10vw, 6rem);
+            font-weight: 700;
+            color: #FDF8F0;
+            line-height: 1.05;
+            margin-bottom: 20px;
+        }
+        
+        .hero-content h1 .italic {
+            font-style: italic;
+            font-weight: 400;
+            color: #F5D6D4;
+        }
+        
+        .hero-content p {
+            font-size: clamp(1rem, 1.3vw, 1.3rem);
+            font-weight: 300;
+            color: rgba(253, 248, 240, 0.7);
+            max-width: 560px;
+            margin: 0 auto 36px;
+            line-height: 1.8;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            display: inline-block;
+            padding: 16px 48px;
+            background: #F5D6D4;
+            color: #1A2A1A;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 60px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-primary:hover {
+            background: #FDF8F0;
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 40px rgba(245, 214, 212, 0.15);
+        }
+        
+        .btn-secondary {
+            display: inline-block;
+            padding: 16px 40px;
+            background: rgba(253, 248, 240, 0.06);
+            backdrop-filter: blur(8px);
+            color: #FDF8F0;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 60px;
+            border: 1px solid rgba(253, 248, 240, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(253, 248, 240, 0.12);
+            border-color: #F5D6D4;
+            transform: translateY(-3px);
+        }
+        
+        .hero-image {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background-image: url('https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600');
+            background-size: cover;
+            background-position: center;
+            margin: 0 auto 30px;
+            border: 3px solid rgba(253, 248, 240, 0.1);
+            box-shadow: 0 0 60px rgba(245, 214, 212, 0.08);
+        }
+        
+        /* ===== BENTO GRID (КАРТОЧКИ) ===== */
+        .bento-section {
+            padding: 60px 0 80px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .bento-item {
+            background: rgba(253, 248, 240, 0.06);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 24px;
+            padding: 32px 28px;
+            border: 1px solid rgba(253, 248, 240, 0.06);
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s ease forwards;
+        }
+        
+        .bento-item:nth-child(2) { animation-delay: 0.15s; }
+        .bento-item:nth-child(3) { animation-delay: 0.3s; }
+        .bento-item:nth-child(4) { animation-delay: 0.45s; }
+        
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bento-item:hover {
+            background: rgba(253, 248, 240, 0.1);
+            transform: translateY(-4px);
+            border-color: rgba(245, 214, 212, 0.15);
+        }
+        
+        .bento-item .icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+        
+        .bento-item h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #FDF8F0;
+            margin-bottom: 8px;
+        }
+        
+        .bento-item p {
+            font-size: 0.9rem;
+            font-weight: 300;
+            color: rgba(253, 248, 240, 0.6);
+            line-height: 1.6;
+        }
+        
+        .bento-item .highlight {
+            color: #F5D6D4;
+            font-weight: 400;
+        }
+        
+        .bento-item .btn-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: #F5D6D4;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(245, 214, 212, 0.3);
+            padding-bottom: 2px;
+            transition: all 0.3s;
+        }
+        
+        .bento-item .btn-link:hover {
+            border-bottom-color: #F5D6D4;
+            color: #FDF8F0;
+        }
+        
+        .bento-item.large {
+            grid-column: span 2;
+        }
+        
+        /* ===== КАЛЕНДАРЬ СЕЗОНОВ ===== */
+        .seasons-section {
+            padding: 60px 0 80px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .seasons-section .section-title {
+            text-align: center;
+        }
+        
+        .seasons-section .section-subtitle {
+            text-align: center;
+            margin: 0 auto 40px;
+        }
+        
+        .seasons-timeline {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .season-btn {
+            padding: 12px 32px;
+            background: rgba(253, 248, 240, 0.04);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(253, 248, 240, 0.08);
+            border-radius: 60px;
+            color: rgba(253, 248, 240, 0.5);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+        }
+        
+        .season-btn:hover {
+            background: rgba(245, 214, 212, 0.1);
+            color: #FDF8F0;
+        }
+        
+        .season-btn.active {
+            background: #F5D6D4;
+            color: #1A2A1A;
+            border-color: #F5D6D4;
+        }
+        
+        .season-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .season-gallery .gallery-item {
+            border-radius: 20px;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(253, 248, 240, 0.06);
+            transition: all 0.4s ease;
+            opacity: 0;
+            transform: scale(0.96);
+            animation: galleryFade 0.6s ease forwards;
+        }
+        
+        .season-gallery .gallery-item:nth-child(2) { animation-delay: 0.1s; }
+        .season-gallery .gallery-item:nth-child(3) { animation-delay: 0.2s; }
+        
+        @keyframes galleryFade {
+            0% { opacity: 0; transform: scale(0.96); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .season-gallery .gallery-item:hover {
+            transform: scale(1.02);
+            border-color: rgba(245, 214, 212, 0.2);
+        }
+        
+        /* ===== ФУТЕР ===== */
+        .footer {
+            padding: 50px 40px 30px;
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid rgba(253, 248, 240, 0.04);
+            margin-top: 20px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .footer-content .brand h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #FDF8F0;
+        }
+        
+        .footer-content .brand h3 span {
+            color: #F5D6D4;
+            font-style: italic;
+            font-weight: 400;
+        }
+        
+        .footer-content .brand p {
+            font-size: 0.85rem;
+            color: rgba(253, 248, 240, 0.4);
+            max-width: 300px;
+            line-height: 1.7;
+        }
+        
+        .footer-content .links h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(253, 248, 240, 0.3);
+            margin-bottom: 14px;
+            font-weight: 600;
+        }
+        
+        .footer-content .links a {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(253, 248, 240, 0.4);
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+        
+        .footer-content .links a:hover {
+            color: #F5D6D4;
+        }
+        
+        .footer-content .socials {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+        
+        .footer-content .socials a {
+            color: rgba(253, 248, 240, 0.3);
+            font-size: 0.8rem;
+            transition: color 0.3s;
+            border-bottom: 1px solid transparent;
+            padding-bottom: 2px;
+        }
+        
+        .footer-content .socials a:hover {
+            color: #F5D6D4;
+            border-color: #F5D6D4;
+        }
+        
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 30px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid rgba(253, 248, 240, 0.04);
+            font-size: 0.7rem;
+            color: rgba(253, 248, 240, 0.2);
+            text-align: center;
+        }
+        
+        /* ===== АДАПТАЦИЯ ===== */
+        @media (max-width: 992px) {
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .bento-item.large {
+                grid-column: span 1;
+            }
+            
+            .season-gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px 20px;
+            }
+            
+            .logo {
+                font-size: 1.3rem;
+            }
+            
+            .nav {
+                gap: 16px;
+            }
+            
+            .nav a {
+                font-size: 0.7rem;
+            }
+            
+            .nav .btn-ticket {
+                padding: 8px 18px;
+                font-size: 0.65rem;
+            }
+            
+            .hero {
+                padding: 100px 20px 40px;
+            }
+            
+            .hero-content h1 {
+                font-size: clamp(2.2rem, 10vw, 3.5rem);
+            }
+            
+            .hero-image {
+                width: 140px;
+                height: 140px;
+            }
+            
+            .bento-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 0 12px;
+            }
+            
+            .bento-item {
+                padding: 24px 20px;
+            }
+            
+            .seasons-section {
+                padding: 40px 0 50px;
+            }
+            
+            .season-gallery {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                padding: 0 12px;
+            }
+            
+            .season-gallery .gallery-item {
+                aspect-ratio: 4 / 3;
+            }
+            
+            .footer {
+                padding: 30px 20px 20px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+            
+            .footer-content .brand p {
+                max-width: 100%;
+            }
+            
+            .footer-content .socials {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero-buttons .btn-primary,
+            .hero-buttons .btn-secondary {
+                padding: 14px 32px;
+                font-size: 0.75rem;
+                width: 100%;
+            }
+            
+            .season-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .seasons-timeline {
+                gap: 8px;
+            }
+            
+            .season-btn {
+                padding: 10px 20px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== ФИРМЕННЫЙ ПАТТЕРН (ФОН) ===== -->
+<div class="pattern-bg" id="patternBg"></div>
+<div class="pattern-bg leaves" id="leavesLayer"></div>
+
+<!-- ===== ШАПКА ===== -->
+<header class="header" id="header">
+    <div class="logo">Ботанический <span>сад</span></div>
+    <nav class="nav">
+        <a href="#bento">О саде</a>
+        <a href="#seasons">Сезоны</a>
+        <a href="#footer">Контакты</a>
+        <button class="btn-ticket">Купить билет</button>
+    </nav>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-image"></div>
+        <span class="badge">🌿 40 гектаров природы</span>
+        <h1>
+            Место, где<br>
+            <span class="italic">дышит природа</span>
+        </h1>
+        <p>Ботанический сад — 40 гектаров редких растений, вечнозелёных оранжерей и тишины в самом сердце города.</p>
+        <div class="hero-buttons">
+            <button class="btn-primary">Купить билет</button>
+            <button class="btn-secondary">Режим работы</button>
+        </div>
+    </div>
+</section>
+
+<!-- ===== BENTO GRID ===== -->
+<section class="bento-section" id="bento">
+    <div class="container">
+        <div class="bento-grid">
+            <div class="bento-item">
+                <span class="icon">🕐</span>
+                <h3>Сегодня</h3>
+                <p><span class="highlight">10:00 – 21:00</span><br>Оранжереи до 19:30</p>
+            </div>
+            <div class="bento-item large">
+                <span class="icon">🗺️</span>
+                <h3>Маршруты</h3>
+                <p>Прогулочный · Цветущий · Исторический</p>
+                <a href="#" class="btn-link">Выбрать маршрут →</a>
+            </div>
+            <div class="bento-item">
+                <span class="icon">🌸</span>
+                <h3>Что цветёт?</h3>
+                <p>В этом месяце — <span class="highlight">магнолия</span> и <span class="highlight">сакура</span></p>
+                <a href="#" class="btn-link">Смотреть календарь →</a>
+            </div>
+            <div class="bento-item">
+                <span class="icon">🌙</span>
+                <h3>Ночные прогулки</h3>
+                <p>Экскурсии в тропиках после заката</p>
+                <a href="#" class="btn-link">Записаться →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== КАЛЕНДАРЬ СЕЗОНОВ ===== -->
+<section class="seasons-section" id="seasons">
+    <div class="container">
+        <h2 class="section-title">Календарь сезонов</h2>
+        <p class="section-subtitle">Нажмите на сезон — и сад заиграет новыми красками.</p>
+        
+        <div class="seasons-timeline">
+            <button class="season-btn active" data-season="spring">Весна</button>
+            <button class="season-btn" data-season="summer">Лето</button>
+            <button class="season-btn" data-season="autumn">Осень</button>
+            <button class="season-btn" data-season="winter">Зима</button>
+        </div>
+        
+        <div class="season-gallery" id="seasonGallery">
+            <div class="gallery-item" style="background-image: url('https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600');"></div>
+            <div class="gallery-item" style="background-image: url('https://images.pexels.com/photos/2504967/pexels-photo-2504967.jpeg?auto=compress&cs=tinysrgb&w=600');"></div>
+            <div class="gallery-item" style="background-image: url('https://images.pexels.com/photos/1702754/pexels-photo-1702754.jpeg?auto=compress&cs=tinysrgb&w=600');"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ФУТЕР ===== -->
+<footer class="footer" id="footer">
+    <div class="footer-content">
+        <div class="brand">
+            <h3>Ботанический <span>сад</span></h3>
+            <p>40 гектаров редких растений, вечнозелёных оранжерей и тишины в самом сердце города.</p>
+            <div class="socials">
+                <a href="#">Instagram</a>
+                <a href="#">VK</a>
+                <a href="#">Telegram</a>
+            </div>
+        </div>
+        <div class="links">
+            <h4>Контакты</h4>
+            <a href="#">+7 999 123-45-67</a>
+            <a href="#">ул. Ботаническая, 1</a>
+            <a href="#">Как добраться</a>
+        </div>
+        <div class="links">
+            <h4>Инфо</h4>
+            <a href="#">Правила поведения</a>
+            <a href="#">Экскурсии</a>
+            <a href="#">Волонтёрам</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        © 2026 Ботанический сад. Вдохновение природой.
+    </div>
+</footer>
+
+<!-- ===== СКРИПТЫ ===== -->
+<script>
+    // ===== ШАПКА ПРИ СКРОЛЛЕ =====
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 80) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+    
+    // ===== ПАРАЛЛАКС ДЛЯ ФОНА =====
+    const leavesLayer = document.getElementById('leavesLayer');
+    window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        leavesLayer.style.transform = `translateY(${scrollY * 0.15}px)`;
+    });
+    
+    // ===== КАЛЕНДАРЬ СЕЗОНОВ =====
+    const seasonButtons = document.querySelectorAll('.season-btn');
+    const gallery = document.getElementById('seasonGallery');
+    
+    const seasonImages = {
+        spring: [
+            'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/2504967/pexels-photo-2504967.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/1702754/pexels-photo-1702754.jpeg?auto=compress&cs=tinysrgb&w=600'
+        ],
+        summer: [
+            'https://images.pexels.com/photos/931177/pexels-photo-931177.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/2209036/pexels-photo-2209036.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/1966516/pexels-photo-1966516.jpeg?auto=compress&cs=tinysrgb&w=600'
+        ],
+        autumn: [
+            'https://images.pexels.com/photos/1069489/pexels-photo-1069489.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/1118884/pexels-photo-1118884.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/1132157/pexels-photo-1132157.jpeg?auto=compress&cs=tinysrgb&w=600'
+        ],
+        winter: [
+            'https://images.pexels.com/photos/1044573/pexels-photo-1044573.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/703039/pexels-photo-703039.jpeg?auto=compress&cs=tinysrgb&w=600',
+            'https://images.pexels.com/photos/762366/pexels-photo-762366.jpeg?auto=compress&cs=tinysrgb&w=600'
+        ]
+    };
+    
+    seasonButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            seasonButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const season = btn.dataset.season;
+            const images = seasonImages[season] || seasonImages.spring;
+            
+            // Обновляем галерею
+            const items = gallery.querySelectorAll('.gallery-item');
+            items.forEach((item, index) => {
+                if (images[index]) {
+                    item.style.backgroundImage = `url('${images[index]}')`;
+                    // Перезапускаем анимацию
+                    item.style.animation = 'none';
+                    setTimeout(() => {
+                        item.style.animation = 'galleryFade 0.6s ease forwards';
+                    }, 10);
+                }
+            });
+            
+            // Меняем цвет акцентов на розовый для активного сезона
+            document.querySelectorAll('.highlight, .btn-link, .logo span, .badge').forEach(el => {
+                el.style.transition = 'color 0.6s ease';
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
